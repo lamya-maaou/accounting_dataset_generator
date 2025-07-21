@@ -1,0 +1,20 @@
+RAPPORT DE SYNTHÈSE - DATASET COMPTABLE SYNTHÉTIQUE ORACLE
+============================================================
+
+Date de génération: 21/07/2025 16:25:18
+Compatible avec le schéma Oracle DB
+
+CLIENTS (800 total):
+  - Publics: 390
+  - Privés: 410
+
+FACTURES (4759 total):
+  - UNPAID: 691
+  - PAID: 3584
+  - SENT: 76
+  - PARTIAL: 151
+  - OVERDUE: 257
+  - Montant total HT: 23,508,092.94 €
+  - Montant total TTC: 27,172,731.12 €
+  - Montant total à payer: 24,923,520.71 €
+
