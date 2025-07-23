@@ -5,7 +5,7 @@ Générateur de Dataset Comptable Synthétique - Compatible Oracle DB
 Génère un dataset réaliste pour tester des systèmes de lettrage automatique
 ou entraîner des modèles IA de reconnaissance de paiement.
 
-Adapté au schéma Oracle DB avec tables BANK_STATEMENT et INVOICES.
+Adapté au schéma Oracle DB avec tables BANK_STATEMENT, INVOICES et EXPENSES.
 
 """
 
@@ -35,9 +35,10 @@ class AccountingDatasetGenerator:
         self.expenses = []
         self.invoice_statuses = []
         
-        # Paramètres de génération
+        # Paramètres de génération MAJ pour les nouveaux volumes
         self.nb_invoices = 5000
-        self.nb_bank_statements = 7000
+        self.nb_bank_statements = 8000  # Augmenté à 8000
+        self.nb_expenses = 5000         # Nouveau paramètre spécifique
         self.nb_clients = 800
         
         # Templates de libellés bancaires réalistes
@@ -154,8 +155,7 @@ class AccountingDatasetGenerator:
                 'CITY': fake.city(),
                 'POSTAL_CODE': fake.postcode(),
                 'SIRET': fake.siret() if client_type == 'PRIVATE' else None,
-                # Générer une date de création entre 2020 et aujourd'hui
-            'CREATED_AT': fake.date_between(start_date='-5y', end_date='today')
+                'CREATED_AT': fake.date_between(start_date='-5y', end_date='today')
             }
             clients.append(client)
         
@@ -228,7 +228,6 @@ class AccountingDatasetGenerator:
             payment_date = None
             if status in ['PAID', 'PARTIAL']:
                 # Date de paiement entre la date de facture et quelques jours après l'échéance
-                # Assurer que la date de paiement est toujours valide
                 max_payment_date = min(expected_payment_date + timedelta(days=30), datetime.now().date())
                 if max_payment_date > invoice_date:
                     payment_date = fake.date_between(
@@ -281,36 +280,72 @@ class AccountingDatasetGenerator:
         return invoices
     
     def generate_expenses(self) -> List[Dict]:
-        """Génère des dépenses pour les relevés bancaires."""
+        """Génère des dépenses conformément au schéma Oracle EXPENSES."""
         print("Génération des dépenses...")
         
         expenses = []
-        nb_expenses = int(self.nb_bank_statements * 0.25)  # 25% des relevés
         
-        expense_categories = [
-            ('Fournitures', 50, 500),
-            ('Carburant', 30, 150),
-            ('Téléphonie', 20, 200),
-            ('Électricité', 100, 800),
-            ('Loyer', 500, 3000),
-            ('Salaires', 1500, 5000),
-            ('Assurances', 100, 1000),
-            ('Frais bancaires', 5, 100)
+        # Catégories et types de dépenses enrichis
+        categories = [
+            'Fournitures bureau', 'Frais professionnels', 'Déplacements', 
+            'Communication', 'Formation', 'Logiciels', 'Matériel informatique',
+            'Frais bancaires', 'Assurances', 'Loyer', 'Services publics',
+            'Marketing', 'R&D', 'Frais de représentation', 'Abonnements',
+            'Maintenance', 'Transport', 'Restauration', 'Hébergement'
         ]
         
-        for i in range(nb_expenses):
-            category, min_amount, max_amount = random.choice(expense_categories)
-            amount = round(random.uniform(min_amount, max_amount), 2)
-            expense_date = fake.date_between(start_date='-18m', end_date='today')
+        types = [
+            'professional', 'travel', 'equipment', 'software', 
+            'subscription', 'office', 'other', 'marketing',
+            'research', 'maintenance', 'food', 'lodging'
+        ]
+        
+        statuses = ['unpaid', 'paid']
+        
+        for i in range(self.nb_expenses):
+            # Génération des dates avec une plage plus large
+            expense_date = fake.date_between(start_date='-24m', end_date='today')
+            created_at = expense_date + timedelta(days=random.randint(0, 2))
+            updated_at = created_at if random.random() < 0.7 else created_at + timedelta(days=random.randint(1, 30))
+            
+            # Montant entre 5 et 5000 € avec distribution log-normale pour plus de réalisme
+            amount = round(np.random.lognormal(mean=4, sigma=0.8), 2)
+            amount = min(max(amount, 5), 5000)  # Bornage entre 5 et 5000
             
             expense = {
                 'EXPENSE_ID': i + 1,
-                'CATEGORY': category,
+                'TITLE': f"{fake.word().capitalize()} {random.choice(['Dépense', 'Frais', 'Achat', 'Facture'])}",
                 'AMOUNT': amount,
+                'LABEL': random.choice([
+                    f"Frais {fake.word()}",
+                    f"Note {fake.city()}",
+                    f"Facture {fake.company()}",
+                    f"Remboursement {fake.last_name()}",
+                    f"Achat {fake.word()}",
+                    f"Service {fake.word()}"
+                ]),
+                'COMMENTS': fake.sentence() if random.random() < 0.6 else None,
                 'EXPENSE_DATE': expense_date,
-                'DESCRIPTION': f"{category} - {fake.text(max_nb_chars=50)}",
-                'SUPPLIER': fake.company()
+                'CREATED_AT': created_at,
+                'ATTACHMENT': None,
+                'TYPE': random.choice(types),
+                'CATEGORY': random.choice(categories),
+                'EXPENSE_NUMBER': f"EXP-{expense_date.year}-{i+1:05d}",
+                'UPDATED_AT': updated_at,
+                'STATUS': random.choices(
+                    statuses, 
+                    weights=[0.3, 0.7]  # 70% de paid, 30% unpaid
+                )[0],
+                'EXPECTED_PAYMENT_DATE': expense_date + timedelta(days=random.randint(1, 60))
             }
+            
+            # Appliquer les triggers si les dates sont nulles
+            if expense['EXPENSE_DATE'] is None:
+                expense['EXPENSE_DATE'] = datetime.now().replace(day=1).date()
+                
+            if expense['EXPECTED_PAYMENT_DATE'] is None:
+                expense['EXPECTED_PAYMENT_DATE'] = datetime.now().replace(day=1, month=datetime.now().month+1).date()
+                
             expenses.append(expense)
         
         self.expenses = expenses
@@ -323,14 +358,14 @@ class AccountingDatasetGenerator:
         bank_statements = []
         paid_invoices = [inv for inv in self.invoices if inv['STATUS'] in ['PAID', 'PARTIAL']]
         
-        # 65% des relevés correspondent aux factures payées
-        nb_invoice_payments = int(self.nb_bank_statements * 0.65)
-        nb_expense_payments = int(self.nb_bank_statements * 0.25)
-        nb_orphan_statements = self.nb_bank_statements - nb_invoice_payments - nb_expense_payments
+        # Répartition adaptée pour 8000 relevés
+        nb_invoice_payments = int(self.nb_bank_statements * 0.65)  # 65% -> 5200
+        nb_expense_payments = int(self.nb_bank_statements * 0.25)  # 25% -> 2000
+        nb_orphan_statements = self.nb_bank_statements - nb_invoice_payments - nb_expense_payments  # 10% -> 800
         
         statement_id = 1
         
-        # 1. Relevés liés aux factures payées
+        # 1. Relevés liés aux factures payées (5200)
         print(f"  Génération de {nb_invoice_payments} paiements de factures...")
         selected_invoices = random.sample(paid_invoices, 
                                         min(nb_invoice_payments, len(paid_invoices)))
@@ -369,22 +404,22 @@ class AccountingDatasetGenerator:
                 "Règlement client",
                 "Virement reçu",
                 "Facture soldée",
-                None  # Parfois pas de commentaire
+                None
             ]
             comments = random.choice(comments_options)
             
             statement = {
-                'STATEMENT_ID': statement_id,  # Oracle IDENTITY
+                'STATEMENT_ID': statement_id,
                 'STATEMENT_DATE': statement_date,
                 'OPERATION_LABEL': operation_label,
                 'ADDITIONAL_LABEL': additional_label,
-                'DEBIT': None,  # NULL pour crédit
+                'DEBIT': None,
                 'CREDIT': round(bank_amount, 2),
                 'COMMENTS': comments,
                 'RELATED_INVOICE_ID': invoice['INVOICE_ID'],
                 'RELATED_EXPENSE_ID': None,
                 'VALUE_DATE': value_date,
-                'SOURCE_FILENAME': None,  # Pas de fichier source pour les données synthétiques
+                'SOURCE_FILENAME': None,
                 'MIME_TYPE': None,
                 'CREATED_AT': fake.date_between(start_date=statement_date, end_date='today')
             }
@@ -392,7 +427,7 @@ class AccountingDatasetGenerator:
             bank_statements.append(statement)
             statement_id += 1
         
-        # 2. Relevés liés aux dépenses
+        # 2. Relevés liés aux dépenses (2000)
         print(f"  Génération de {nb_expense_payments} paiements de dépenses...")
         if self.expenses:
             selected_expenses = random.sample(self.expenses, 
@@ -424,7 +459,7 @@ class AccountingDatasetGenerator:
                     'OPERATION_LABEL': operation_label,
                     'ADDITIONAL_LABEL': additional_label,
                     'DEBIT': round(bank_amount, 2),
-                    'CREDIT': None,  # NULL pour débit
+                    'CREDIT': None,
                     'COMMENTS': f"Dépense {expense['CATEGORY']}",
                     'RELATED_INVOICE_ID': None,
                     'RELATED_EXPENSE_ID': expense['EXPENSE_ID'],
@@ -437,11 +472,14 @@ class AccountingDatasetGenerator:
                 bank_statements.append(statement)
                 statement_id += 1
         
-        # 3. Relevés orphelins (frais bancaires, etc.)
+        # 3. Relevés orphelins (800)
         print(f"  Génération de {nb_orphan_statements} relevés orphelins...")
         for i in range(nb_orphan_statements):
-            amount = round(random.uniform(-200, 50), 2)  # Généralement des frais
-            statement_date = fake.date_between(start_date='-18m', end_date='today')
+            # Utilisation d'une distribution log-normale pour les montants
+            amount = round(np.random.lognormal(mean=3, sigma=1.2), 2)
+            amount = random.choice([-1, 1]) * min(abs(amount), 500)  # Bornage et signe aléatoire
+            
+            statement_date = fake.date_between(start_date='-24m', end_date='today')
             value_date = statement_date + timedelta(days=random.randint(-1, 1))
             
             operation_label = random.choice(self.operation_labels['orphan'])
@@ -519,11 +557,14 @@ class AccountingDatasetGenerator:
             statements_df.to_csv(f'{output_dir}/bank_statements.csv', index=False, encoding='utf-8-sig')
             print(f"  ✓ {len(self.bank_statements)} relevés bancaires exportés vers bank_statements.csv")
         
-        # Export des dépenses
+        # Export des dépenses (table EXPENSES)
         if self.expenses:
             expenses_df = pd.DataFrame(self.expenses)
             # Formatage des dates pour Oracle
-            expenses_df['EXPENSE_DATE'] = pd.to_datetime(expenses_df['EXPENSE_DATE']).dt.strftime('%Y-%m-%d')
+            date_columns = ['EXPENSE_DATE', 'CREATED_AT', 'UPDATED_AT', 'EXPECTED_PAYMENT_DATE']
+            for col in date_columns:
+                if col in expenses_df.columns:
+                    expenses_df[col] = pd.to_datetime(expenses_df[col]).dt.strftime('%Y-%m-%d')
             expenses_df.to_csv(f'{output_dir}/expenses.csv', index=False, encoding='utf-8-sig')
             print(f"  ✓ {len(self.expenses)} dépenses exportées vers expenses.csv")
         
@@ -574,7 +615,7 @@ class AccountingDatasetGenerator:
                 f.write(f"    {sample_invoice['AMOUNT_TTC']}, {sample_invoice['RAS_5P']}, {sample_invoice['RAS_TVA']}, {sample_invoice['AMOUNT_TO_PAY']},\n")
                 f.write(f"    DATE '{sample_invoice['ELECTRONIC_DATE']}', DATE '{sample_invoice['PHYSICAL_DATE']}', DATE '{sample_invoice['EXPECTED_PAYMENT_DATE']}',\n")
                 f.write("    '{}', '{}', {}\n".format(
-                    sample_invoice['LABEL'].replace("'", "''"),  # Double les apostrophes pour échappement SQL
+                    sample_invoice['LABEL'].replace("'", "''"),
                     sample_invoice['CLIENT_TYPE'],
                     sample_invoice['MONTANT_TVA']
                 ))
@@ -630,6 +671,45 @@ class AccountingDatasetGenerator:
                 
                 total_credits = sum([s['CREDIT'] for s in self.bank_statements if s['CREDIT']])
                 total_debits = sum([s['DEBIT'] for s in self.bank_statements if s['DEBIT']])
+                
+                f.write(f"RELEVES BANCAIRES ({len(self.bank_statements)} total):\n")
+                f.write(f"  - Liés à des factures: {linked_to_invoices}\n")
+                f.write(f"  - Liés à des dépenses: {linked_to_expenses}\n")
+                f.write(f"  - Orphelins: {orphan_statements}\n")
+                f.write(f"  - Total crédits: {total_credits:,.2f} €\n")
+                f.write(f"  - Total débits: {total_debits:,.2f} €\n\n")
+            
+            # Statistiques dépenses
+            if self.expenses:
+                status_counts = {}
+                category_counts = {}
+                type_counts = {}
+                total_amount = 0
+                
+                for expense in self.expenses:
+                    status = expense['STATUS']
+                    category = expense['CATEGORY']
+                    expense_type = expense['TYPE']
+                    
+                    status_counts[status] = status_counts.get(status, 0) + 1
+                    category_counts[category] = category_counts.get(category, 0) + 1
+                    type_counts[expense_type] = type_counts.get(expense_type, 0) + 1
+                    total_amount += expense['AMOUNT']
+                
+                f.write(f"DEPENSES ({len(self.expenses)} total):\n")
+                f.write(f"  - Montant total: {total_amount:,.2f} €\n")
+                f.write("  - Par statut:\n")
+                for status, count in status_counts.items():
+                    f.write(f"    - {status}: {count}\n")
+                f.write("  - Par catégorie:\n")
+                for category, count in category_counts.items():
+                    f.write(f"    - {category}: {count}\n")
+                f.write("  - Par type:\n")
+                for expense_type, count in type_counts.items():
+                    f.write(f"    - {expense_type}: {count}\n")
+                f.write("\n")
+            
+            f.write("FIN DU RAPPORT\n")
 
 if __name__ == "__main__":
     try:
