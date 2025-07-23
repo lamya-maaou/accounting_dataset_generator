@@ -1,0 +1,36 @@
+=== RAPPORT DE SYNTHÈSE DES DONNÉES DE FACTURATION ===
+
+RÉSUMÉ DES FACTURES:
+- Nombre total de factures: 1000
+
+Répartition par statut:
+  - paid: 478 factures (47.8%)
+  - paid_late: 344 factures (34.4%)
+  - overdue: 170 factures (17.0%)
+  - unpaid: 8 factures (0.8%)
+
+Montants totaux:
+- Total HT: 5,055,951.54 €
+- Total TVA: 459,172.66 €
+- Total TTC: 5,515,124.20 €
+
+Répartition par catégorie (montant TTC):
+  - Software: 640,393.33 € (11.6%)
+  - Hosting: 615,187.88 € (11.2%)
+  - Support: 598,216.43 € (10.8%)
+  - Consulting: 579,694.73 € (10.5%)
+  - IT_Services: 571,641.26 € (10.4%)
+  - Training: 547,490.73 € (9.9%)
+  - Hardware: 529,019.37 € (9.6%)
+  - Design: 512,530.55 € (9.3%)
+  - Development: 462,092.23 € (8.4%)
+  - Maintenance: 458,857.69 € (8.3%)
+
+RÉSUMÉ DES TRANSACTIONS BANCAIRES:
+- Nombre total de transactions: 1017
+- Montant total des transactions: 4,268,283.08 €
+
+Transactions appariées: 1017 (100.0%)
+Transactions non appariées: 0 (0.0%)
+
+Généré le: 23/07/2025 10:56:46
