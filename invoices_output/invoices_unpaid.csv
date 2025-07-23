@@ -1,0 +1,9 @@
+invoice_id,invoice_number,client_name,client_id,issue_date,due_date,payment_date,amount_ht,vat_rate,vat_amount,amount_ttc,currency,status,type,category,payment_method,notes,created_at,updated_at
+21,INV-2025-1020,Le Gall,98,2025-07-13,2025-08-18,,1181.76,5.5,65.0,1246.76,CHF,unpaid,credit_note,Hosting,,,2024-01-25,2024-08-14
+54,INV-2025-1053,Goncalves Schmitt S.A.R.L.,245,2025-07-11,2025-09-01,,293.37,20.0,58.67,352.04,EUR,unpaid,proforma,Maintenance,,Condamner tomber répandre.,2024-06-07,2025-05-30
+362,INV-2025-1361,Ribeiro S.A.,189,2025-07-13,2025-07-31,,7075.88,10.0,707.59,7783.47,CHF,unpaid,recurring,Consulting,,,2024-10-04,2024-10-24
+521,INV-2025-1520,Fischer,463,2025-07-05,2025-08-23,,4485.82,10.0,448.58,4934.4,GBP,unpaid,proforma,Training,,,2023-12-25,2024-11-06
+528,INV-2025-1527,Jourdan Giraud S.A.S.,28,2025-06-29,2025-08-21,,6375.48,20.0,1275.1,7650.58,GBP,unpaid,invoice,Training,,,2025-04-06,2024-07-26
+548,INV-2025-1547,Pelletier,55,2025-06-22,2025-08-16,,2810.58,5.5,154.58,2965.16,USD,unpaid,credit_note,IT_Services,,Colline tapis roi agir de.,2023-11-02,2024-10-13
+791,INV-2025-1790,Dijoux SA,460,2025-07-21,2025-08-13,,4192.75,20.0,838.55,5031.3,CHF,unpaid,proforma,IT_Services,,,2024-07-08,2025-01-16
+946,INV-2025-1945,Gaudin,407,2025-06-19,2025-08-09,,4847.03,0.0,0.0,4847.03,USD,unpaid,recurring,Support,,Douceur attitude étendue jour mal ce.,2025-01-25,2025-02-14

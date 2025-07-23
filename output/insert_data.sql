@@ -1,6 +1,6 @@
 -- Script d'insertion pour Oracle DB
 -- Dataset Comptable Synthétique
--- Généré le 23/07/2025 10:28:43
+-- Généré le 23/07/2025 10:48:44
 
 -- Insertion des statuts de facture
 INSERT INTO INVOICE_STATUSES (STATUS_CODE, DESCRIPTION) VALUES ('DRAFT', 'Brouillon');
