@@ -1,6 +1,6 @@
 -- Script d'insertion pour Oracle DB
 -- Dataset Comptable Synthétique
--- Généré le 22/07/2025 13:04:35
+-- Généré le 23/07/2025 10:28:43
 
 -- Insertion des statuts de facture
 INSERT INTO INVOICE_STATUSES (STATUS_CODE, DESCRIPTION) VALUES ('DRAFT', 'Brouillon');
@@ -25,10 +25,10 @@ INSERT INTO INVOICES (
     ELECTRONIC_DATE, PHYSICAL_DATE, EXPECTED_PAYMENT_DATE,
     LABEL, CLIENT_TYPE, MONTANT_TVA
 ) VALUES (
-    222, DATE '2025-07-21', NULL, 6000.22, 'UNPAID',
+    222, DATE '2025-07-22', NULL, 6000.22, 'UNPAID',
     'FACT-2025-000001', 2025, NULL, 166.67, 36,
     6330.23, 0.0, 0.0, 6330.23,
-    DATE '2025-07-21', DATE '2025-07-24', DATE '2025-08-23',
+    DATE '2025-07-22', DATE '2025-07-25', DATE '2025-08-24',
     'Prestation L''avantage de changer avant-tout', 'PRIVATE', 330.01
 );
 */

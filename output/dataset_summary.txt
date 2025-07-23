@@ -1,7 +1,7 @@
 RAPPORT DE SYNTHÈSE - DATASET COMPTABLE SYNTHÉTIQUE ORACLE
 ============================================================
 
-Date de génération: 22/07/2025 13:04:35
+Date de génération: 23/07/2025 10:28:43
 Compatible avec le schéma Oracle DB
 
 CLIENTS (800 total):
