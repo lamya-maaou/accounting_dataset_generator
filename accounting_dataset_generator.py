@@ -7,14 +7,6 @@ ou entraîner des modèles IA de reconnaissance de paiement.
 
 Adapté au schéma Oracle DB avec tables BANK_STATEMENT et INVOICES.
 
-Génère:
-- ~5000 factures (PUBLIC/PRIVATE avec calculs spécifiques)
-- ~7000 relevés bancaires (65% liés aux factures, 25% dépenses, 10% orphelins)
-- Correspondances et variations réalistes
-- Export en CSV compatible Oracle
-
-Auteur: Assistant IA
-Date: 2025-07-21
 """
 
 import pandas as pd
